@@ -14,4 +14,4 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
-} // TODO Implement this library.
+}
