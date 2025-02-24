@@ -7,7 +7,7 @@ class AgriculturalCyclesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Agricultural Cycles'),
+        title: Text('Ciclos Agrícolas'),
       ),
       body: Center(
         child: Text('Agricultural Cycles Page'),

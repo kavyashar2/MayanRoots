@@ -7,7 +7,7 @@ class ReportsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reports'),
+        title: Text('Reportes'),
       ),
       body: Center(
         child: Text('Reports Page'),
