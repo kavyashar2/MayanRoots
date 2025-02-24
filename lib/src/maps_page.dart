@@ -7,7 +7,7 @@ class MapsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Maps'),
+        title: Text('Mapas'),
       ),
       body: Center(
         child: Text('Maps Page'),

@@ -7,7 +7,7 @@ class CommunityPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Community'),
+        title: Text('Comunidad'),
       ),
       body: Center(
         child: Text('Community Page'),
