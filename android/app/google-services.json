@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "192656653192",
+    "project_id": "mayanroots-88a08",
+    "storage_bucket": "mayanroots-88a08.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:192656653192:android:007dde82ab1b55e198583d",
+        "android_client_info": {
+          "package_name": "com.example.mayan_roots_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABxC4vWv-JOh1cdeqSYCvGh98UL7LrW4I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
