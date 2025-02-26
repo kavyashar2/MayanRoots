@@ -1,14 +1,15 @@
 plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id "dev.flutter.flutter-gradle-plugin"
+    id "com.android.application"  // Android Application Plugin
+    id "kotlin-android"  // Kotlin Android Plugin
+    id "dev.flutter.flutter-gradle-plugin"  // Flutter Gradle Plugin
+    id 'com.google.gms.google-services'  // Google Services Plugin (Firebase)
 }
 
 android {
-    namespace = "com.example.mayan_roots_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    namespace = "com.example.mayan_roots_app"  // Unique package name
+    compileSdk = flutter.compileSdkVersion  // Compile SDK version from Flutter config
+
+    ndkVersion = flutter.ndkVersion  // NDK version from Flutter config
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -20,25 +21,26 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.mayan_roots_app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        applicationId = "com.example.mayan_roots_app"  // Application ID (Package Name)
+        minSdk = flutter.minSdkVersion  // Minimum SDK version
+        targetSdk = flutter.targetSdkVersion  // Target SDK version
+        versionCode = flutter.versionCode  // Version code
+        versionName = flutter.versionName  // Version name
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.debug  // Use debug signing config for now
         }
     }
 }
 
 flutter {
-    source = "../.."
+    source = "../.."  // Flutter source directory
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.9.0')  // Firebase BoM (Bill of Materials)
+    implementation 'com.google.firebase:firebase-analytics'  // Firebase Analytics SDK
+    // Add other Firebase dependencies here if needed
 }
