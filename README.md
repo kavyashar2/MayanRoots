@@ -1,12 +1,22 @@
-# mayan_roots_app
+# Mayan Roots App
 
-A bilingual mobile app for Yucatán’s farmers, integrating GIS with traditional Mayan agricultural knowledge. This tool empowers farmers to make informed decisions, preserves cultural practices, and improves productivity.
+A bilingual mobile app for Yucatán’s farmers, integrating _Geographic Integration System (GIS)_ with traditional Mayan agricultural knowledge. This tool empowers farmers to make informed decisions, preserves cultural practices, and improves productivity.
 
-## Getting Started
+## Installation Instructions
+> instructions of installation
 
+
+
+## App Breakdown
+
+The app stores all information on the Milpa agricultural system in one location for farmers to use. Users will have access to maps through the Google Maps API.
+
+# Appendix
+
+## Intro to Flutter
 This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+Here are a few resources to get you started if this is your first Flutter project:
 
 - [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
