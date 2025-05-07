@@ -117,3 +117,5 @@ yarn-error.log
 # Windows specific
 **/windows/flutter/generated_plugin_registrant.cc
 **/windows/flutter/generated_plugins.cmake
+flutter_macos_arm64_3.22.2-stable.zip
+lib/src/config/credentials.dart

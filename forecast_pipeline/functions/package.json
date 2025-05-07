@@ -1,0 +1,13 @@
+{
+  "name": "forecast-pipeline",
+  "version": "1.0.0",
+  "description": "Forecast pipeline for Mayan Roots App",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "firebase": "^10.8.0"
+  }
+} 

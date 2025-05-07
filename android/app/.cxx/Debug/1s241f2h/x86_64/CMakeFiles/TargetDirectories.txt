@@ -1,0 +1,2 @@
+/Users/fernandorojas/mayan_roots_app/android/app/.cxx/Debug/1s241f2h/x86_64/CMakeFiles/edit_cache.dir
+/Users/fernandorojas/mayan_roots_app/android/app/.cxx/Debug/1s241f2h/x86_64/CMakeFiles/rebuild_cache.dir
