@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:provider/provider.dart';
 import '../services/localization_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class CycleStep1Page extends StatefulWidget {
   const CycleStep1Page({super.key});
@@ -12,24 +14,42 @@ class CycleStep1Page extends StatefulWidget {
 
 class _CycleStep1PageState extends State<CycleStep1Page> {
   final FlutterTts _tts = FlutterTts();
-  final _localization = LocalizationService.instance;
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
   bool isLoading = false;
-
-  String t(String key) => _localization.translate(key);
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _setupTTS();
   }
 
   Future<void> _setupTTS() async {
+    final localization = Provider.of<LocalizationService>(context, listen: false);
     // Set language based on current app language
-    final String ttsLang = _localization.currentLanguage == 'es' ? 'es-MX' : 'es-MX'; // Update when Maya TTS is available
+    String ttsLang;
+    switch (localization.currentLanguage) {
+      case 'es':
+        ttsLang = 'es-MX';
+        break;
+      case 'en':
+        ttsLang = 'en-US';
+        break;
+      case 'yua':
+        ttsLang = 'es-MX'; // Fallback for TTS if ever used directly for YUA
+        break;
+      default:
+        ttsLang = 'es-MX'; // Default fallback
+    }
     await _tts.setLanguage(ttsLang);
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
+    await _audioPlayer.setVolume(1.0);
     
     _tts.setCompletionHandler(() {
       if (mounted) {
@@ -42,19 +62,84 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
   }
 
   void _toggleAudio() async {
-    print('🔊 [DEBUG] Audio button pressed');
-    final String textToRead = t('step_1_description');
-    print('🔊 [DEBUG] Text to read: $textToRead');
+    final localization = Provider.of<LocalizationService>(context, listen: false);
+
+    if (localization.currentLanguage == 'yua') {
+      const String yucatecAudioPath = 'audio/yuc_step1_audio.mp3';
+
+      if (isPlaying) {
+        print('🔊 [DEBUG] Stopping Mayan MP3: assets/$yucatecAudioPath');
+        await _audioPlayer.stop();
+        if (mounted) {
+          setState(() {
+            isPlaying = false;
+            isLoading = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() => isLoading = true);
+        }
+        try {
+          print('🔊 [DEBUG] Attempting to play Mayan MP3: assets/$yucatecAudioPath');
+          await _audioPlayer.play(AssetSource(yucatecAudioPath));
+          if (mounted) {
+            setState(() {
+              isPlaying = true;
+              isLoading = false;
+            });
+          }
+          _audioPlayer.onPlayerComplete.first.then((_) {
+            if (mounted) {
+              setState(() {
+                isPlaying = false;
+              });
+            }
+          });
+        } catch (e) {
+          print('Error playing MP3 for YUA: $e');
+          if (mounted) {
+            setState(() {
+              isLoading = false;
+              isPlaying = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error playing audio file: ${e.toString()}'), backgroundColor: Colors.red),
+            );
+          }
+        }
+      }
+      return;
+    }
+
+    // --- STANDARD TTS FOR OTHER LANGUAGES (EN, ES) ---
+    print('🔊 [DEBUG] Audio button pressed for ${localization.currentLanguage}');
+    
+    // Construct text from granular segments for TTS for Step 1
+    List<String> segmentsToSpeak = [
+      localization.translate('step_1_desc_segment_1'),
+      localization.translate('step_1_desc_segment_2_prefix'),
+      localization.translate('step_1_desc_segment_2_suffix'),
+      localization.translate('step_1_desc_segment_3_prefix'),
+      localization.translate('step_1_desc_segment_3_suffix'),
+    ];
+    final String textToRead = segmentsToSpeak.where((s) => s.isNotEmpty && s != null).join(' '); // Join non-empty strings
+    
+    print('🔊 [DEBUG] Text to read for TTS: "$textToRead"');
 
     if (isPlaying) {
       print('🔊 [DEBUG] Stopping TTS');
       await _tts.stop();
-      setState(() {
-        isPlaying = false;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isPlaying = false;
+          isLoading = false;
+        });
+      }
     } else {
-      setState(() => isLoading = true);
+      if (mounted) {
+          setState(() => isLoading = true);
+      }
       try {
         print('🔊 [DEBUG] Starting TTS.speak');
         var result = await _tts.speak(textToRead);
@@ -74,7 +159,7 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(t('audio_error')),
+              content: Text(localization.translate('audio_error')),
               backgroundColor: Colors.red,
             ),
           );
@@ -86,11 +171,14 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
   @override
   void dispose() {
     _tts.stop();
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final localization = Provider.of<LocalizationService>(context);
     return Scaffold(
       backgroundColor: const Color(0xFFA8D5BA),
       appBar: AppBar(
@@ -113,7 +201,7 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
               child: Text(
-                'Step 1\n🌱 Selección de Terrenos o Parcelas Forestales',
+                localization.translate('step_1_title'),
                 style: GoogleFonts.montserrat(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -143,17 +231,17 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
                     : Icon(isPlaying ? Icons.stop : Icons.play_arrow, size: 28, color: Colors.white),
                 label: Text(
                   isLoading
-                      ? 'Cargando...'
+                      ? localization.translate('loading')
                       : isPlaying
-                          ? 'Detener audio'
-                          : 'Reproducir audio',
+                          ? localization.translate('stop_audio')
+                          : localization.translate('play_audio'),
                   style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white),
                 ),
               ),
             ),
             const SizedBox(height: 20),
             Text(
-              'Imagen de ejemplo',
+              localization.translate('example_image'),
               style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -166,7 +254,7 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Text(
-                    'No se pudo cargar la imagen',
+                    localization.translate('image_load_error'),
                     style: GoogleFonts.montserrat(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
                   );
                 },
@@ -193,10 +281,10 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
                 children: [
                   Row(
                     children: [
-                      Text('🌱', style: TextStyle(fontSize: 28)),
+                      Text('\u{1F333}', style: TextStyle(fontSize: 28)),
                       SizedBox(width: 8),
                       Text(
-                        'Descripción de la etapa:',
+                        localization.translate('stage_description'),
                         style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -205,15 +293,29 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('🌳', style: TextStyle(fontSize: 22)),
+                      Text('\u{1F333}', style: TextStyle(fontSize: 22)),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          localization.translate('step_1_desc_segment_1'),
+                          style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('\u{1F91D}', style: TextStyle(fontSize: 22)),
                       SizedBox(width: 6),
                       Expanded(
                         child: RichText(
                           text: TextSpan(
                             style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                             children: [
-                              TextSpan(text: 'La distribución de terrenos o parcelas forestales ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                              TextSpan(text: 'es el primer paso esencial en el ciclo agrícola. En esta etapa, los líderes de la comunidad, como los ancianos o el consejo comunal, asignan áreas específicas del bosque o terreno a diferentes familias o agricultores. Este proceso se basa en la tradición, el conocimiento local y las necesidades de la comunidad. '),
+                              TextSpan(text: localization.translate('step_1_desc_segment_2_prefix'), style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
+                              TextSpan(text: localization.translate('step_1_desc_segment_2_suffix')),
                             ],
                           ),
                         ),
@@ -224,34 +326,15 @@ class _CycleStep1PageState extends State<CycleStep1Page> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('🤝', style: TextStyle(fontSize: 22)),
+                      Text('\u{1F465}', style: TextStyle(fontSize: 22)),
                       SizedBox(width: 6),
                       Expanded(
                         child: RichText(
                           text: TextSpan(
                             style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                             children: [
-                              TextSpan(text: 'La distribución busca asegurar un uso equitativo y sostenible de la tierra, ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                              TextSpan(text: 'respetando los límites ecológicos y fomentando la regeneración del bosque en terrenos previamente utilizados.'),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('👥', style: TextStyle(fontSize: 22)),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: RichText(
-                          text: TextSpan(
-                            style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            children: [
-                              TextSpan(text: 'Este paso también refuerza el tejido social ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                              TextSpan(text: 'al involucrar a los miembros de la comunidad en decisiones colaborativas.'),
+                              TextSpan(text: localization.translate('step_1_desc_segment_3_prefix'), style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
+                              TextSpan(text: localization.translate('step_1_desc_segment_3_suffix')),
                             ],
                           ),
                         ),

@@ -49,7 +49,7 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
       builder: (context, localization, child) {
         return Scaffold(
           appBar: AppBar(
-            title: Text('${widget.year} Forecast'),
+            title: Text('${widget.year} ${localization.translate('weather_forecast_title')}'),
             backgroundColor: const Color(0xFFA8D5BA),
           ),
           body: _buildBody(localization),
@@ -207,15 +207,15 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
                           children: [
                             Text(monthLabel, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
-                            const Text('No forecast available for this month.', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                            Text(localization.translate('no_forecast'), style: TextStyle(fontSize: 16, color: Colors.grey)),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Why are some months missing?',
+                            Text(
+                              localization.translate('why_missing_months'),
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
                             ),
                             SizedBox(height: 4),
                             Text(
-                              'Seasonal forecasts are made for future months, and sometimes not every month has a forecast. This can happen because forecasts are made several months ahead, or because the data provider did not release a forecast for that month. Sometimes, forecasts are missing due to data quality checks or gaps in the original data. This is normal and does not mean there is a problem with your app.',
+                              localization.translate('missing_months_explanation'),
                               style: TextStyle(fontSize: 14, color: Colors.black87),
                             ),
                           ],
@@ -265,19 +265,19 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
                           const SizedBox(height: 8),
                           Center(
                             child: Text(
-                              _tercileLabel(dominant),
+                              _tercileLabel(localization, dominant),
                               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _tercileColor(dominant)),
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text('Hotter: $above%   Normal: $normal%   Colder: $below%', style: const TextStyle(fontSize: 15)),
+                          Text('${localization.translate('warmer')}: $above%   ${localization.translate('normal')}: $normal%   ${localization.translate('colder')}: $below%', style: const TextStyle(fontSize: 15)),
                           const SizedBox(height: 8),
-                          _farmerExplanation(dominant, prob, monthLabel),
+                          _farmerExplanation(localization, dominant, prob, monthLabel),
                           const SizedBox(height: 8),
                           Align(
                             alignment: Alignment.bottomRight,
                             child: Text(
-                              'Data source: IRI NMME, CHIRPS',
+                              '${localization.translate('data_source')}: IRI NMME, CHIRPS',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.black54,
@@ -303,21 +303,17 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Note: Some months may not have a forecast due to unavailable data. This is normal for seasonal forecasts.\n\n'
-                      'How to use this page:\n'
-                      '- Each card shows the forecast for a month, with the most likely temperature outcome and the chances for hotter, normal, or colder than usual.\n'
-                      '- If a month is missing, it means no forecast was available for that month.\n\n'
-                      'How this helps you:\n'
-                      '- Use these forecasts to plan your planting, growing, and harvesting.\n'
-                      '- If a month is likely to be hotter, consider watering more or planting heat-tolerant crops.\n'
-                      '- If a month is likely to be colder, be ready for possible cold stress.\n'
-                      '- If normal, expect a typical season.\n\n'
-                      'If you have questions, ask your local advisor for more information.\n\n',
+                      '${localization.translate('forecast_note')}\n\n'
+                      '${localization.translate('how_to_use')}\n'
+                      '${localization.translate('forecast_usage')}\n\n'
+                      '${localization.translate('how_this_helps')}\n'
+                      '${localization.translate('forecast_benefits')}\n\n'
+                      '${localization.translate('ask_advisor')}\n\n',
                       style: TextStyle(fontSize: 15, color: Colors.black87),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Data source: Seasonal climate forecasts provided by the Mayan Roots backend and international climate agencies (e.g., NOAA, CONAGUA, CHIRPS).',
+                      localization.translate('data_source_note'),
                       style: TextStyle(fontSize: 13, color: Colors.black54, fontStyle: FontStyle.italic),
                     ),
                   ],
@@ -330,20 +326,30 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
     );
   }
 
-  Widget _farmerExplanation(String dominant, String prob, String monthLabel) {
+  Widget _farmerExplanation(LocalizationService localization, String dominant, String prob, String monthLabel) {
     switch (dominant) {
       case 'above':
-        return Text('This means there is a $prob% chance that $monthLabel will be hotter than usual. Prepare your crops for more heat.', style: const TextStyle(fontSize: 15, color: Colors.redAccent));
+        return Text(
+          '${localization.translate('probability_warmer')} $prob% ${localization.translate('probability_description')} $monthLabel ${localization.translate('probability_warmer_end')}',
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
+        );
       case 'below':
-        return Text('This means there is a $prob% chance that $monthLabel will be colder than usual. Be ready for possible cold weather.', style: const TextStyle(fontSize: 15, color: Colors.blueAccent));
+        return Text(
+          '${localization.translate('probability_warmer')} $prob% ${localization.translate('probability_description')} $monthLabel ${localization.translate('probability_colder_end')}',
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
+        );
       case 'normal':
-        return Text('This means there is a $prob% chance that $monthLabel will have normal temperatures. Expect a typical season.', style: const TextStyle(fontSize: 15, color: Colors.green));
+        return Text(
+          '${localization.translate('probability_warmer')} $prob% ${localization.translate('probability_description')} $monthLabel ${localization.translate('probability_normal_end')}',
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
+        );
       default:
-        return Text('We do not have enough information for $monthLabel. Please ask your local advisor for more details.', style: const TextStyle(fontSize: 15, color: Colors.grey));
+        return const SizedBox.shrink();
     }
   }
 
   void _showForecastDetail(BuildContext context, Map<String, dynamic> forecast) {
+    final localization = Provider.of<LocalizationService>(context, listen: false);
     final month = forecast['forecast_month'] ?? '';
     final dt = DateTime.tryParse(month.length == 7 ? '$month-01' : month);
     final monthLabel = dt != null ? DateFormat('MMMM yyyy').format(dt) : month;
@@ -360,32 +366,36 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Most likely: \\${_tercileLabel(dominant)} (\\$prob%)', style: TextStyle(color: _tercileColor(dominant), fontWeight: FontWeight.bold)),
+              Text('Most likely: ${_tercileLabel(localization, dominant)} ($prob%)', 
+                  style: TextStyle(color: _tercileColor(dominant), fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('Lead time: \\${lead} month(s)'),
-              Text('Issued: \\${issued}'),
+              Text('Lead time: $lead month(s)'),
+              Text('Issued: $issued'),
               // (Optional) Add advice/explanation here
               if (dominant == 'above')
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 12.0),
-                  child: Text('Advice: Prepare for heat stress on crops.', style: TextStyle(color: Colors.redAccent)),
+                  child: Text(localization.translate('probability_warmer_end'), 
+                              style: TextStyle(color: Colors.redAccent)),
                 ),
               if (dominant == 'below')
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 12.0),
-                  child: Text('Advice: Prepare for possible cold stress.', style: TextStyle(color: Colors.blueAccent)),
+                  child: Text(localization.translate('probability_colder_end'), 
+                              style: TextStyle(color: Colors.blueAccent)),
                 ),
               if (dominant == 'normal')
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 12.0),
-                  child: Text('Advice: Expect typical seasonal temperatures.', style: TextStyle(color: Colors.green)),
+                  child: Text(localization.translate('probability_normal_end'), 
+                              style: TextStyle(color: Colors.green)),
                 ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: Text(localization.translate('understood')),
             ),
           ],
         );
@@ -393,16 +403,16 @@ class _YearlyForecastPageState extends State<YearlyForecastPage> {
     );
   }
 
-  String _tercileLabel(String tercile) {
+  String _tercileLabel(LocalizationService localization, String tercile) {
     switch (tercile) {
       case 'above':
-        return 'Above-normal temperature';
+        return localization.translate('temp_above_normal');
       case 'below':
-        return 'Below-normal temperature';
+        return localization.translate('temp_below_normal');
       case 'normal':
-        return 'Near-normal temperature';
+        return localization.translate('temp_normal');
       default:
-        return 'Unknown';
+        return localization.translate('temp_unknown');
     }
   }
 

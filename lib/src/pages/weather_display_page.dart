@@ -15,6 +15,12 @@ class WeatherDisplayPage extends StatefulWidget {
 class _WeatherDisplayPageState extends State<WeatherDisplayPage> {
   final _weatherService = WeatherService();
   WeatherForecast? _forecast;
+  // Simulate data for the screenshot
+  final String _currentLocation = "Tahcabo (20.6537, -88.4460)";
+  final String _lastUpdated = "04/05/2025";
+  final String _precipitationValue = "0.2 mm";
+  final String _probabilityValue = "100%";
+
   bool _isLoading = true;
   String? _error;
 
@@ -60,7 +66,7 @@ class _WeatherDisplayPageState extends State<WeatherDisplayPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: Text(
-              localization.translate('weather_forecast'),
+              localization.translate('weather_forecast_title'),
               style: const TextStyle(color: Colors.black),
             ),
             leading: IconButton(
@@ -115,110 +121,57 @@ class _WeatherDisplayPageState extends State<WeatherDisplayPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildShortTermForecast(localization),
+            _buildCurrentWeatherCard(localization),
             const SizedBox(height: 24),
-            _buildLongTermForecast(localization),
-            const SizedBox(height: 16),
-            _buildLastUpdated(localization),
+            _buildHistoricalDataSection(localization),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildShortTermForecast(LocalizationService localization) {
+  Widget _buildCurrentWeatherCard(LocalizationService localization) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              localization.translate('short_term_forecast'),
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Image.asset('assets/images/rain_cloud.png', height: 60),
+            const SizedBox(height: 16),
+            Text('${localization.translate('location_label')}: $_currentLocation'),
+            Text('${localization.translate('data_updated_label')}: $_lastUpdated'),
             const SizedBox(height: 16),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      localization.translate('precipitation'),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      '${_forecast!.shortTerm.precipMm.toStringAsFixed(1)} mm',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text(_precipitationValue, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(localization.translate('precipitation_label')),
                   ],
                 ),
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      localization.translate('confidence'),
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    Text(
-                      '${(_forecast!.shortTerm.confidence * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text(_probabilityValue, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(localization.translate('probability_label')),
                   ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLongTermForecast(LocalizationService localization) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              localization.translate('seasonal_forecast'),
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 16),
-            _buildProbabilityBar(
-              label: localization.translate('wet'),
-              probability: _forecast!.longTerm.wetProbability,
-              color: Colors.blue,
+            Text(
+              localization.translate('forecast_description'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 8),
-            _buildProbabilityBar(
-              label: localization.translate('normal'),
-              probability: _forecast!.longTerm.normalProbability,
-              color: Colors.green,
-            ),
-            const SizedBox(height: 8),
-            _buildProbabilityBar(
-              label: localization.translate('dry'),
-              probability: _forecast!.longTerm.dryProbability,
-              color: Colors.orange,
+            Text(
+              localization.translate('data_source_label'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
@@ -226,53 +179,30 @@ class _WeatherDisplayPageState extends State<WeatherDisplayPage> {
     );
   }
 
-  Widget _buildProbabilityBar({
-    required String label,
-    required double probability,
-    required Color color,
-  }) {
+  Widget _buildHistoricalDataSection(LocalizationService localization) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            SizedBox(
-              width: 80,
-              child: Text(label, style: const TextStyle(fontSize: 16)),
-            ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: probability,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                  minHeight: 20,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: 50,
-              child: Text(
-                '${(probability * 100).toStringAsFixed(0)}%',
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ],
+        Text(
+          localization.translate('historical_data_prompt'),
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
         ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5CBA7),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Text(
+            localization.translate('current_year_label'),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Icon(Icons.keyboard_arrow_down, size: 30, color: Colors.teal[700])
       ],
-    );
-  }
-
-  Widget _buildLastUpdated(LocalizationService localization) {
-    final formatter = DateFormat.yMd().add_Hm();
-    return Text(
-      '${localization.translate('last_updated')}: ${formatter.format(_forecast!.updatedAt)}',
-      style: const TextStyle(
-        fontSize: 14,
-        color: Colors.black54,
-      ),
     );
   }
 } 

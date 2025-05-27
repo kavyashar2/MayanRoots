@@ -21,6 +21,11 @@ class SheetsService {
   static const _cacheDuration = Duration(hours: 1);
   static const _maxRetries = 3;
   static const _retryDelay = Duration(seconds: 2);
+  static const _connectionTimeout = Duration(seconds: 10);
+
+  // For demo mode
+  static bool _demoMode = true; // Set to true for the demo
+  static final List<List<String>> _demoReports = [];
 
   static SheetsService? _instance;
   static GSheets? _gsheets;
@@ -38,12 +43,31 @@ class SheetsService {
   }
 
   bool get isInitialized => _isInitialized;
+  bool get isDemoMode => _demoMode;
+  
+  // Enable or disable demo mode
+  void setDemoMode(bool enabled) {
+    _demoMode = enabled;
+    if (enabled) {
+      _isInitialized = true;
+    } else {
+      _isInitialized = false;
+    }
+  }
 
   Future<T> _withRetry<T>(Future<T> Function() operation) async {
     int attempts = 0;
     while (attempts < _maxRetries) {
       try {
-        return await operation();
+        return await operation().timeout(_connectionTimeout);
+      } on TimeoutException {
+        attempts++;
+        if (attempts == _maxRetries) {
+          throw SheetsServiceException(
+            'Connection timed out after $_maxRetries attempts. Please check your internet connection.',
+          );
+        }
+        await Future.delayed(_retryDelay * attempts);
       } on SocketException catch (e) {
         attempts++;
         if (attempts == _maxRetries) {
@@ -62,6 +86,12 @@ class SheetsService {
 
   // Initialize the service
   Future<void> init() async {
+    // If in demo mode, immediately set as initialized
+    if (_demoMode) {
+      _isInitialized = true;
+      return;
+    }
+
     if (_isInitialized) return;
 
     // If already initializing, wait for that to complete
@@ -139,11 +169,29 @@ class SheetsService {
     required String description,
     String? location,
     String? cropYield,
+    String? email,
     required String incidentDate,
   }) async {
     try {
       if (!_isInitialized) {
         await init();
+      }
+
+      // If in demo mode, just store in memory
+      if (_demoMode) {
+        final timestamp = DateTime.now().toIso8601String();
+        final rowData = [
+          timestamp,
+          reportName,
+          category,
+          description,
+          location ?? '',
+          cropYield ?? '',
+          email ?? '',
+          incidentDate,
+        ];
+        _demoReports.add(rowData);
+        return true;
       }
 
       if (_worksheet == null) {
@@ -158,6 +206,7 @@ class SheetsService {
         description,
         location ?? '',
         cropYield ?? '',
+        email ?? '',
         incidentDate,
       ];
       
@@ -178,6 +227,11 @@ class SheetsService {
     try {
       if (!_isInitialized) {
         await init();
+      }
+
+      // If in demo mode, return demo reports
+      if (_demoMode) {
+        return _demoReports;
       }
 
       if (_worksheet == null) {

@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import '../services/localization_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class CycleStep2Page extends StatefulWidget {
   const CycleStep2Page({super.key});
@@ -13,6 +14,7 @@ class CycleStep2Page extends StatefulWidget {
 
 class _CycleStep2PageState extends State<CycleStep2Page> {
   final FlutterTts _tts = FlutterTts();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
   bool isLoading = false;
 
@@ -24,10 +26,24 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
 
   Future<void> _setupTTS() async {
     final localization = Provider.of<LocalizationService>(context, listen: false);
-    final String ttsLang = localization.currentLanguage == 'es' ? 'es-MX' : 'es-MX';
+    String ttsLang;
+    switch (localization.currentLanguage) {
+      case 'es':
+        ttsLang = 'es-MX';
+        break;
+      case 'en':
+        ttsLang = 'en-US';
+        break;
+      case 'yua':
+        ttsLang = 'es-MX';
+        break;
+      default:
+        ttsLang = 'es-MX';
+    }
     await _tts.setLanguage(ttsLang);
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
+    await _audioPlayer.setVolume(1.0);
     
     _tts.setCompletionHandler(() {
       if (mounted) {
@@ -40,7 +56,37 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
   }
 
   void _toggleAudio(LocalizationService localization) async {
-    final String textToRead = localization.translate('step_2_description');
+    if (localization.currentLanguage == 'yua') {
+      const String yucatecAudioPath = 'audio/yuc_step2_audio.mp3';
+      if (isPlaying) {
+        await _audioPlayer.stop();
+        if (mounted) setState(() { isPlaying = false; isLoading = false; });
+      } else {
+        if (mounted) setState(() => isLoading = true);
+        try {
+          await _audioPlayer.play(AssetSource(yucatecAudioPath));
+          if (mounted) setState(() { isPlaying = true; isLoading = false; });
+          _audioPlayer.onPlayerComplete.first.then((_) {
+            if (mounted) setState(() { isPlaying = false; });
+          });
+        } catch (e) {
+          if (mounted) setState(() { isLoading = false; isPlaying = false; });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error playing audio file: ${e.toString()}'), backgroundColor: Colors.red),
+          );
+        }
+      }
+      return;
+    }
+
+    List<String> segmentsToSpeak = [
+      localization.translate('step_2_desc_segment_1'),
+      localization.translate('step_2_desc_segment_2'),
+      localization.translate('step_2_desc_segment_3'),
+      localization.translate('step_2_desc_segment_4'),
+      localization.translate('step_2_desc_segment_5'),
+    ];
+    final String textToRead = segmentsToSpeak.where((s) => s.isNotEmpty && s != null).join(' \n\n');
 
     if (isPlaying) {
       await _tts.stop();
@@ -78,6 +124,8 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
   @override
   void dispose() {
     _tts.stop();
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -106,7 +154,7 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Text(
-                    'Step 2\n🌾 Desmonte del Terreno (Corte de Vegetación)',
+                    '${localization.translate('step_2_title')}',
                     style: GoogleFonts.montserrat(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -136,17 +184,17 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
                         : Icon(isPlaying ? Icons.stop : Icons.play_arrow, size: 28, color: Colors.white),
                     label: Text(
                       isLoading
-                          ? 'Cargando...'
+                          ? localization.translate('loading')
                           : isPlaying
-                              ? 'Detener audio'
-                              : 'Reproducir audio',
+                              ? localization.translate('stop_audio')
+                              : localization.translate('play_audio'),
                       style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Imagen de ejemplo',
+                  localization.translate('example_image'),
                   style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
@@ -159,7 +207,7 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Text(
-                        'No se pudo cargar la imagen',
+                        localization.translate('image_load_error'),
                         style: GoogleFonts.montserrat(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
                       );
                     },
@@ -176,7 +224,7 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.08),
                         blurRadius: 12,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -185,90 +233,24 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
                     children: [
                       Row(
                         children: [
-                          Text('🌾', style: TextStyle(fontSize: 28)),
+                          Text('\u{1F33E}', style: TextStyle(fontSize: 28)),
                           SizedBox(width: 8),
                           Text(
-                            'Descripción de la etapa:',
+                            localization.translate('stage_description'),
                             style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🪓', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'El desmonte del terreno es el proceso de eliminación de la vegetación para preparar la tierra para la siembra.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildDescriptionRow('\u{1FA93}', localization.translate('step_2_desc_segment_1')),
                       const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌳', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Esto puede incluir la remoción de árboles, arbustos y maleza que puedan obstruir la producción agrícola.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildDescriptionRow('\u{1F333}', localization.translate('step_2_desc_segment_2')),
                       const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🛠️', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Las técnicas utilizadas varían según la región y los recursos disponibles. En comunidades tradicionales, se emplean herramientas manuales como machetes, mientras que en sistemas agrícolas modernos se pueden usar máquinas pesadas para despejar grandes áreas.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildDescriptionRow('\u{1F6E0}️', localization.translate('step_2_desc_segment_3')),
                       const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌳', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Es importante llevar a cabo este proceso de manera responsable, preservando ciertos árboles para mantener la biodiversidad, evitar la erosión del suelo y asegurar la regeneración del ecosistema.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildDescriptionRow('\u{1F333}', localization.translate('step_2_desc_segment_4')),
                       const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌱', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                                children: [
-                                  TextSpan(text: 'Las prácticas '),
-                                  TextSpan(text: 'sostenibles', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: ' buscan minimizar el impacto ambiental y garantizar la fertilidad del suelo para los siguientes ciclos de cultivo.'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildDescriptionRow('\u{1F331}', localization.translate('step_2_desc_segment_5')),
                     ],
                   ),
                 ),
@@ -278,6 +260,22 @@ class _CycleStep2PageState extends State<CycleStep2Page> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDescriptionRow(String emoji, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(emoji, style: TextStyle(fontSize: 22)),
+        SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+          ),
+        ),
+      ],
     );
   }
 }

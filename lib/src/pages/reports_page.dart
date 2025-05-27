@@ -22,6 +22,7 @@ class _ReportsPageState extends State<ReportsPage> {
   final _descriptionController = TextEditingController();
   final _locationController = TextEditingController();
   final _cropYieldController = TextEditingController();
+  final _emailController = TextEditingController();
   final _dateController = TextEditingController();
 
   @override
@@ -56,6 +57,7 @@ class _ReportsPageState extends State<ReportsPage> {
     _descriptionController.dispose();
     _locationController.dispose();
     _cropYieldController.dispose();
+    _emailController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -71,6 +73,7 @@ class _ReportsPageState extends State<ReportsPage> {
           description: _descriptionController.text,
           location: _locationController.text,
           cropYield: _cropYieldController.text,
+          email: _emailController.text,
           incidentDate: _dateController.text,
         );
 
@@ -250,6 +253,21 @@ class _ReportsPageState extends State<ReportsPage> {
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
+                                    localization.translate('email_optional'),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextFormField(
+                                    controller: _emailController,
+                                    decoration: InputDecoration(
+                                      hintText: localization.translate('email_hint'),
+                                      border: const OutlineInputBorder(),
+                                    ),
+                                    keyboardType: TextInputType.emailAddress,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
                                     localization.translate('incident_date'),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
@@ -273,7 +291,7 @@ class _ReportsPageState extends State<ReportsPage> {
                                         padding: const EdgeInsets.symmetric(vertical: 16),
                                       ),
                                       child: Text(
-                                        localization.translate('submit'),
+                                        localization.translate('submit_report'),
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.black,

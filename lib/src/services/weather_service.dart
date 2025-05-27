@@ -103,7 +103,7 @@ class WeatherService {
     print('🔧 Configuring Firebase emulators');
     try {
       // Configure emulators
-      firestore.useFirestoreEmulator('localhost', 8082);
+      firestore.useFirestoreEmulator('localhost', 8083);
       
       print('⏳ Waiting for emulators to be ready...');
       await Future.delayed(_emulatorStartupDelay);

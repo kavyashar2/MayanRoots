@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import '../services/localization_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class CycleStep3Page extends StatefulWidget {
   const CycleStep3Page({super.key});
@@ -13,6 +14,7 @@ class CycleStep3Page extends StatefulWidget {
 
 class _CycleStep3PageState extends State<CycleStep3Page> {
   final FlutterTts _tts = FlutterTts();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
   bool isLoading = false;
 
@@ -24,10 +26,24 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
 
   Future<void> _setupTTS() async {
     final localization = Provider.of<LocalizationService>(context, listen: false);
-    final String ttsLang = localization.currentLanguage == 'es' ? 'es-MX' : 'es-MX';
+    String ttsLang;
+    switch (localization.currentLanguage) {
+      case 'es':
+        ttsLang = 'es-MX';
+        break;
+      case 'en':
+        ttsLang = 'en-US';
+        break;
+      case 'yua':
+        ttsLang = 'yua'; // Placeholder - Check if supported by TTS engine
+        break;
+      default:
+        ttsLang = 'es-MX'; // Default fallback
+    }
     await _tts.setLanguage(ttsLang);
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
+    await _audioPlayer.setVolume(1.0);
     
     _tts.setCompletionHandler(() {
       if (mounted) {
@@ -40,7 +56,36 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
   }
 
   void _toggleAudio(LocalizationService localization) async {
-    final String textToRead = localization.translate('step_3_description');
+    if (localization.currentLanguage == 'yua') {
+      const String yucatecAudioPath = 'audio/yuc_step3_audio.mp3';
+      if (isPlaying) {
+        await _audioPlayer.stop();
+        if (mounted) setState(() { isPlaying = false; isLoading = false; });
+      } else {
+        if (mounted) setState(() => isLoading = true);
+        try {
+          await _audioPlayer.play(AssetSource(yucatecAudioPath));
+          if (mounted) setState(() { isPlaying = true; isLoading = false; });
+          _audioPlayer.onPlayerComplete.first.then((_) {
+            if (mounted) setState(() { isPlaying = false; });
+          });
+        } catch (e) {
+          if (mounted) setState(() { isLoading = false; isPlaying = false; });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error playing audio file: ${e.toString()}'), backgroundColor: Colors.red),
+          );
+        }
+      }
+      return;
+    }
+    
+    List<String> segmentsToSpeak = [
+      localization.translate('step_3_title'),
+      '🔥 ${localization.translate('step_3_desc_s1')}',
+      '🌱 ${localization.translate('step_3_desc_s2')}',
+      '🛡️ ${localization.translate('step_3_desc_s3')}',
+    ];
+    final String textToRead = segmentsToSpeak.where((s) => s.isNotEmpty).join(' \n\n');
 
     if (isPlaying) {
       await _tts.stop();
@@ -78,6 +123,8 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
   @override
   void dispose() {
     _tts.stop();
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -97,6 +144,7 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
                 Navigator.pop(context);
               },
             ),
+            title: Text(localization.translate('step_3_title')),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -106,7 +154,7 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Text(
-                    'Step 3\n💧 Secado al Sol y Quema de Vegetación Cortada',
+                    '${localization.translate('step_3_title')}',
                     style: GoogleFonts.montserrat(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -136,17 +184,17 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
                         : Icon(isPlaying ? Icons.stop : Icons.play_arrow, size: 28, color: Colors.white),
                     label: Text(
                       isLoading
-                          ? 'Cargando...'
+                          ? localization.translate('loading')
                           : isPlaying
-                              ? 'Detener audio'
-                              : 'Reproducir audio',
+                              ? localization.translate('stop_audio')
+                              : localization.translate('play_audio'),
                       style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Imagen de ejemplo',
+                  localization.translate('example_image'),
                   style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
@@ -159,7 +207,7 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Text(
-                        'No se pudo cargar la imagen',
+                        localization.translate('image_load_error'),
                         style: GoogleFonts.montserrat(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
                       );
                     },
@@ -176,7 +224,7 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.08),
                         blurRadius: 12,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -185,79 +233,28 @@ class _CycleStep3PageState extends State<CycleStep3Page> {
                     children: [
                       Row(
                         children: [
-                          Text('💧', style: TextStyle(fontSize: 28)),
+                          Text('\u{1F4A7}', style: TextStyle(fontSize: 28)),
                           SizedBox(width: 8),
                           Text(
-                            'Descripción de la etapa:',
+                            localization.translate('step_3_title'),
                             style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Paragraph 1
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌞', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Después del desmonte del terreno, la vegetación cortada se deja secar al sol durante varios días. Este proceso permite que el material vegetal pierda humedad, facilitando su posterior quema de manera controlada.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '🔥 ${localization.translate('step_3_desc_s1')}',
+                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                       ),
-                      const SizedBox(height: 16),
-                      // Paragraph 2
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🔥', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'La quema controlada es una técnica agrícola tradicional utilizada para eliminar los restos vegetales y devolver nutrientes esenciales al suelo. Este proceso libera potasio y otros minerales, mejorando la fertilidad de la tierra para la siguiente cosecha.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 12),
+                      Text(
+                        '🌱 ${localization.translate('step_3_desc_s2')}',
+                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                       ),
-                      const SizedBox(height: 16),
-                      // Paragraph 3
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('⚠️', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Sin embargo, la quema debe realizarse con precaución para evitar incendios incontrolados y proteger la calidad del suelo.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Paragraph 4
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌱', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                                children: [
-                                  TextSpan(text: 'Alternativas '),
-                                  TextSpan(text: 'sostenibles', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: ' incluyen la incorporación de materia orgánica en el suelo mediante compostaje o el uso de técnicas de conservación agrícola para minimizar la pérdida de nutrientes.'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 12),
+                      Text(
+                        '🛡️ ${localization.translate('step_3_desc_s3')}',
+                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                       ),
                     ],
                   ),

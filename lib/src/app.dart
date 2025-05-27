@@ -7,7 +7,7 @@ import 'agricultural_cycles_page.dart';
 import 'pages/community_page.dart';
 import 'pages/reports_page.dart';
 import 'help_page.dart';
-import 'settings_page.dart';
+import 'pages/settings_page.dart';
 import 'pages/cycle_step_1.dart';
 import 'pages/cycle_step_2.dart';
 import 'pages/cycle_step_3.dart';
@@ -18,6 +18,7 @@ import 'pages/cycle_step_7.dart';
 import 'pages/cycle_step_8.dart';
 import 'pages/forecast_year_selection_page.dart';
 import 'dart:developer' as developer;
+import 'widgets/scroll_down_indicator.dart';
 
 void _log(String message) {
   final timestamp = DateTime.now().toIso8601String();
@@ -33,7 +34,10 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     _log('Building App widget');
     _log('Widget tree: App -> MyApp');
-    return const MyApp();
+    return ChangeNotifierProvider<LocalizationService>.value(
+      value: LocalizationService.instance,
+      child: const MyApp(),
+    );
   }
 }
 
@@ -70,8 +74,17 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'Mayan Roots App',
           theme: ThemeData(
+            fontFamily: 'Montserrat',
             primarySwatch: Colors.brown,
             scaffoldBackgroundColor: const Color(0xFFA8D5BA),
+            textTheme: const TextTheme(
+              displayLarge: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.black, letterSpacing: 1.2),
+              displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black, letterSpacing: 1.1),
+              displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+              bodyLarge: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.w500),
+              bodyMedium: TextStyle(fontSize: 16, color: Colors.black),
+              labelLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
           ),
           home: Builder(
             builder: (context) {
@@ -223,116 +236,120 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final _localization = LocalizationService.instance;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _log('LandingPage initState');
-    _log('LocalizationService state - initialized: ${_localization.isInitialized}, currentLanguage: ${_localization.currentLanguage}');
   }
 
-  String t(String key) => _localization.translate(key);
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  String t(String key) {
+    return Provider.of<LocalizationService>(context).translate(key);
+  }
 
   @override
   Widget build(BuildContext context) {
-    _log('Building LandingPage');
+    _log('Building LandingPage widget (Reverted Style)');
+    final localization = Provider.of<LocalizationService>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFA8D5BA),
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFFA8D5BA),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.black),
+            onPressed: () {
+              _log('Settings button pressed, navigating to /settings');
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  t('preserving'),
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(t('preserving'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black)),
+                            Text(t('heritage'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black)),
+                            Text(t('yucatan'), style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.black)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Image.asset(
+                        'assets/images/Chaac-light 1.png',
+                        height: 170,
+                        width: 170,
+                        fit: BoxFit.contain,
+                      ),
+                    ],
                   ),
-                ),
-                Text(
-                  t('heritage'),
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  t('yucatan'),
-                  style: const TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: [
+                  const SizedBox(height: 20),
+                  
                   MenuItem(
                     label: t('maps'),
-                    icon: Icons.map,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/maps');
-                    },
+                    icon: Icons.map_outlined,
+                    onTap: () => Navigator.pushNamed(context, '/maps'),
                   ),
                   MenuItem(
                     label: t('agricultural_cycles'),
-                    icon: Icons.agriculture,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/agricultural_cycles');
-                    },
+                    icon: Icons.eco_outlined,
+                    onTap: () => Navigator.pushNamed(context, '/agricultural_cycles'),
                   ),
                   MenuItem(
+                    label: t('forecast_and_history'),
+                    icon: Icons.cloud_outlined,
+                    onTap: () => Navigator.pushNamed(context, '/forecast'),
+                  ),
+                   MenuItem(
                     label: t('community'),
-                    icon: Icons.group,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/community');
-                    },
+                    icon: Icons.groups_outlined,
+                    onTap: () => Navigator.pushNamed(context, '/community'),
                   ),
                   MenuItem(
                     label: t('reports'),
-                    icon: Icons.bar_chart,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/reports');
-                    },
-                  ),
-                  MenuItem(
-                    label: t('forecast'),
-                    icon: Icons.cloud,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/forecast');
-                    },
+                    icon: Icons.insert_chart_outlined, 
+                    onTap: () => Navigator.pushNamed(context, '/reports'),
                   ),
                   MenuItem(
                     label: t('help'),
                     icon: Icons.help_outline,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/help');
-                    },
+                    onTap: () => Navigator.pushNamed(context, '/help'),
                   ),
                   MenuItem(
                     label: t('settings'),
-                    icon: Icons.settings,
-                    onTap: () {
-                      Navigator.pushNamed(context, '/settings');
-                    },
+                    icon: Icons.settings_outlined,
+                    onTap: () => Navigator.pushNamed(context, '/settings'),
                   ),
+                  const SizedBox(height: 70),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          ScrollDownIndicator(controller: _scrollController),
+        ],
       ),
     );
   }
@@ -356,7 +373,7 @@ class MenuItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 15.0),
-        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 8.0),
         decoration: BoxDecoration(
           color: Colors.transparent,
           border: Border(
@@ -365,29 +382,48 @@ class MenuItem extends StatelessWidget {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(icon, size: 40, color: Colors.brown[800]),
+                  Icon(icon, size: 40, color: Colors.black),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        label,
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                        overflow: TextOverflow.visible,
+                        maxLines: 2,
+                        softWrap: true,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward, size: 24, color: Colors.brown),
+            const Text(
+              '>',
+              style: TextStyle(fontSize: 32, color: Colors.black, fontWeight: FontWeight.normal),
+            ),
           ],
         ),
       ),
     );
   }
-} 
+}
+
+// Make sure to add these new keys to your localization_service.dart:
+// 'app_title': {'en': 'Mayan Roots', 'es': 'Raíces Mayas', 'yua': 'Mayab Ch'i'ibalo'ob'},
+// 'main_slogan': {'en': 'Preserving the Heritage of Yucatán', 'es': 'Preservando la Herencia de Yucatán', 'yua': 'Táan k-kanáantik u kuxtal Yucatán'},
+// 'maps_and_territory': {'en': 'Maps & Territory', 'es': 'Mapas y Territorio', 'yua': 'Mapas yéetel Lu'um'},
+// 'agricultural_cycles': {'en': 'Agricultural Cycles', 'es': 'Ciclos Agrícolas', 'yua': 'Xookoy Paak''},
+// 'community_and_collaborations': {'en': 'Community & Collaborations', 'es': 'Comunidad y Colaboraciones', 'yua': 'Múuch' Kaaj yéetel Múul Meyaj'},
+// 'reports': {'en': 'Reports', 'es': 'Reportes', 'yua': 'Informes'},
+// 'help_and_support': {'en': 'Help & Support', 'es': 'Ayuda y Soporte', 'yua': 'Áantaj yéetel Kanje'exil'},
+// 'feedback': {'en': 'Feedback', 'es': 'Comentarios', 'yua': 'Tsolik Tuukul'}
+
+// Also ensure 'assets/images/mayan_symbol.png' exists or update the path. 

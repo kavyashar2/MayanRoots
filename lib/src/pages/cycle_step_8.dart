@@ -97,6 +97,7 @@ class _CycleStep8PageState extends State<CycleStep8Page> {
                 Navigator.pop(context);
               },
             ),
+            title: Text(localization.translate('step_8_title')),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -106,7 +107,7 @@ class _CycleStep8PageState extends State<CycleStep8Page> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Text(
-                    'Paso 8\n🔥 Selección de Terrenos o Parcela Forestales',
+                    '${localization.translate('step_8_title')}',
                     style: GoogleFonts.montserrat(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -146,7 +147,7 @@ class _CycleStep8PageState extends State<CycleStep8Page> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Imagen de ejemplo',
+                  localization.translate('example_image'),
                   style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
@@ -159,7 +160,7 @@ class _CycleStep8PageState extends State<CycleStep8Page> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Text(
-                        'Error: Imagen no encontrada',
+                        localization.translate('image_load_error'),
                         style: GoogleFonts.montserrat(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
                       );
                     },
@@ -188,14 +189,14 @@ class _CycleStep8PageState extends State<CycleStep8Page> {
                           Text('🔥', style: TextStyle(fontSize: 28)),
                           SizedBox(width: 8),
                           Text(
-                            'Descripción de la etapa:',
+                            localization.translate('stage_description'),
                             style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Antes de iniciar un nuevo ciclo de siembra, es crucial seleccionar semillas de calidad para garantizar una cosecha óptima.\n',
+                        localization.translate('step_8_description'),
                         style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                       ),
                       Text(

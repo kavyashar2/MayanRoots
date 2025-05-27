@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'maps_page.dart'; // Import the new maps page
 import 'agricultural_cycles_page.dart'; // Import the new agriculture cycles page
 import 'community_page.dart'; // Import the new community page
@@ -7,8 +9,15 @@ import 'reports_page.dart'; // Import the new reports page
 import 'help_page.dart'; // Import the new help page
 import 'settings_page.dart'; // Import the new settings page
 
-void main() {
-  runApp(LandingPage());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MaterialApp(
+    home: LandingPage(),
+    debugShowCheckedModeBanner: false,
+  ));
 }
 
 class LandingPage extends StatelessWidget {
@@ -17,20 +26,47 @@ class LandingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Preservando el Patrimonio de Yucatán'),
         backgroundColor: Color(0xFFCCEEFF),
-        leading: Image.asset('assets/images/app_icon.png'),
-      ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Image.asset('assets/images/app_icon.png', height: 100, width: 100),
-            SizedBox(height: 20),
-            ElevatedButton(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Preservando el',
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Patrimonio de',
+                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Yucatán',
+                        style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 16),
+                Image.asset(
+                  'assets/images/Chaac-light 1.png',
+                  height: 120,
+                  width: 120,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            Center(
+              child: ElevatedButton(
               onPressed: () {
-                // Navigate to the main menu
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MenuPage()),
@@ -42,11 +78,11 @@ class LandingPage extends StatelessWidget {
                 textStyle: TextStyle(fontWeight: FontWeight.bold),
               ),
               child: Text('Empezar', style: TextStyle(fontSize: 20)),
+              ),
             ),
           ],
         ),
       ),
-      backgroundColor: Color(0xFFCCEEFF),
     );
   }
 }
@@ -56,6 +92,7 @@ class MenuPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('DEBUG: MenuPage build');
     return Scaffold(
       appBar: AppBar(
         title: Text('Menú'),
@@ -67,7 +104,7 @@ class MenuPage extends StatelessWidget {
             icon: Icons.map_outlined,
             title: 'Mapas',
             onPressed: () {
-              // Navigate to the maps page
+              print('DEBUG: Mapas menu item pressed');
               Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => MapsPage()),
@@ -78,7 +115,7 @@ class MenuPage extends StatelessWidget {
             icon: Icons.agriculture,
             title: 'Ciclos Agrícolas',
             onPressed: () {
-              // Navigate to the agricultural cycles page
+              print('DEBUG: Ciclos Agrícolas menu item pressed');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => AgriculturalCyclesPage()),
@@ -89,7 +126,7 @@ class MenuPage extends StatelessWidget {
             icon: Icons.group,
             title: 'Comunidad',
             onPressed: () {
-              // Navigate to the community page
+              print('DEBUG: Comunidad menu item pressed');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => CommunityPage()),
@@ -100,7 +137,7 @@ class MenuPage extends StatelessWidget {
             icon: Icons.report,
             title: 'Reportes',
             onPressed: () {
-              // Navigate to the reports page
+              print('DEBUG: Reportes menu item pressed');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ReportsPage()),
@@ -111,7 +148,7 @@ class MenuPage extends StatelessWidget {
             icon: Icons.help,
             title: 'Ayuda',
             onPressed: () {
-              // Navigate to the help page
+              print('DEBUG: Ayuda menu item pressed');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => HelpPage()),
@@ -122,7 +159,7 @@ class MenuPage extends StatelessWidget {
             icon: Icons.settings,
             title: 'Configuración',
             onPressed: () {
-              // Navigate to the settings page
+              print('DEBUG: Configuración menu item pressed');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SettingsPage()),

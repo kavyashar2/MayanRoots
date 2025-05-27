@@ -45,5 +45,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need access to save map screenshots.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need access to save map screenshots.</string>
 </dict>
 </plist>

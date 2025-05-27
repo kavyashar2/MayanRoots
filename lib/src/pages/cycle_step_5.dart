@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import '../services/localization_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 class CycleStep5Page extends StatefulWidget {
   const CycleStep5Page({super.key});
@@ -13,6 +14,7 @@ class CycleStep5Page extends StatefulWidget {
 
 class _CycleStep5PageState extends State<CycleStep5Page> {
   final FlutterTts _tts = FlutterTts();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
   bool isLoading = false;
 
@@ -24,10 +26,24 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
 
   Future<void> _setupTTS() async {
     final localization = Provider.of<LocalizationService>(context, listen: false);
-    final String ttsLang = localization.currentLanguage == 'es' ? 'es-MX' : 'es-MX';
+    String ttsLang;
+    switch (localization.currentLanguage) {
+      case 'es':
+        ttsLang = 'es-MX';
+        break;
+      case 'en':
+        ttsLang = 'en-US';
+        break;
+      case 'yua':
+        ttsLang = 'es-MX';
+        break;
+      default:
+        ttsLang = 'es-MX';
+    }
     await _tts.setLanguage(ttsLang);
     await _tts.setSpeechRate(0.5);
     await _tts.setVolume(1.0);
+    await _audioPlayer.setVolume(1.0);
     
     _tts.setCompletionHandler(() {
       if (mounted) {
@@ -40,7 +56,38 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
   }
 
   void _toggleAudio(LocalizationService localization) async {
-    final String textToRead = localization.translate('step_5_description');
+    if (localization.currentLanguage == 'yua') {
+      const String yucatecAudioPath = 'audio/yuc_step5_audio.mp3';
+      if (isPlaying) {
+        await _audioPlayer.stop();
+        if (mounted) setState(() { isPlaying = false; isLoading = false; });
+      } else {
+        if (mounted) setState(() => isLoading = true);
+        try {
+          await _audioPlayer.play(AssetSource(yucatecAudioPath));
+          if (mounted) setState(() { isPlaying = true; isLoading = false; });
+          _audioPlayer.onPlayerComplete.first.then((_) {
+            if (mounted) setState(() { isPlaying = false; });
+          });
+        } catch (e) {
+          if (mounted) setState(() { isLoading = false; isPlaying = false; });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error playing audio file: ${e.toString()}'), backgroundColor: Colors.red),
+          );
+        }
+      }
+      return;
+    }
+    
+    List<String> segmentsToSpeak = [
+      localization.translate('step_5_desc_s1'),
+      localization.translate('step_5_desc_s2'),
+      localization.translate('step_5_bullet_1_title') + ' ' + localization.translate('step_5_bullet_1_text'),
+      localization.translate('step_5_bullet_2_title') + ' ' + localization.translate('step_5_bullet_2_text'),
+      localization.translate('step_5_bullet_3_title') + ' ' + localization.translate('step_5_bullet_3_text'),
+      localization.translate('step_5_desc_s3'),
+    ];
+    final String textToRead = segmentsToSpeak.where((s) => s != null && s.isNotEmpty).join(' \n');
 
     if (isPlaying) {
       await _tts.stop();
@@ -78,7 +125,32 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
   @override
   void dispose() {
     _tts.stop();
+    _audioPlayer.stop();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  Widget _buildBulletPoint(LocalizationService localization, String titleKey, String textKey) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7)),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                children: [
+                  TextSpan(text: localization.translate(titleKey), style: const TextStyle(fontWeight: FontWeight.bold)),
+                  TextSpan(text: localization.translate(textKey)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -94,9 +166,11 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
               icon: const Icon(Icons.arrow_back, color: Colors.black, size: 30),
               onPressed: () {
                 _tts.stop();
+                _audioPlayer.stop();
                 Navigator.pop(context);
               },
             ),
+            title: Text(localization.translate('step_5_title')),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -106,7 +180,7 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Text(
-                    'Step 5\n🌽 Mantenimiento y Deshierbe durante el crecimiento del cultivo',
+                    localization.translate('step_5_title'),
                     style: GoogleFonts.montserrat(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -136,17 +210,17 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                         : Icon(isPlaying ? Icons.stop : Icons.play_arrow, size: 28, color: Colors.white),
                     label: Text(
                       isLoading
-                          ? 'Cargando...'
+                          ? localization.translate('loading')
                           : isPlaying
-                              ? 'Detener audio'
-                              : 'Reproducir audio',
+                              ? localization.translate('stop_audio')
+                              : localization.translate('play_audio'),
                       style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Imagen de ejemplo',
+                  localization.translate('example_image'),
                   style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
@@ -159,7 +233,7 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Text(
-                        'No se pudo cargar la imagen',
+                        localization.translate('image_load_error'),
                         style: GoogleFonts.montserrat(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
                       );
                     },
@@ -176,7 +250,7 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.08),
                         blurRadius: 12,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -185,43 +259,42 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                     children: [
                       Row(
                         children: [
-                          Text('🌽', style: TextStyle(fontSize: 28)),
+                          Text('🌱', style: TextStyle(fontSize: 28)),
                           SizedBox(width: 8),
                           Text(
-                            'Descripción de la etapa:',
+                            localization.translate('stage_description'),
                             style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Paragraph 1
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌱', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'El mantenimiento y deshierbe son esenciales para el crecimiento saludable de los cultivos. Durante esta fase, los agricultores eliminan las hierbas no deseadas que compiten con los cultivos por agua y nutrientes.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        localization.translate('step_5_desc_s1'),
+                        style: GoogleFonts.montserrat(fontSize: 16, height: 1.5),
                       ),
                       const SizedBox(height: 16),
-                      // Bullet points
+                      Text(
+                        localization.translate('step_5_desc_s2'),
+                        style: GoogleFonts.montserrat(fontSize: 16, fontWeight: FontWeight.bold, height: 1.5),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      // Bullet point 1
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('🔹', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
+                          Text('🌱', style: TextStyle(fontSize: 18)),
+                          SizedBox(width: 8),
                           Expanded(
                             child: RichText(
                               text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                                style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black, height: 1.5),
                                 children: [
-                                  TextSpan(text: 'Deshierbe manual o con herramientas tradicionales: ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: 'para evitar el uso excesivo de químicos.'),
+                                  TextSpan(
+                                    text: localization.translate('step_5_bullet_1_title'),
+                                    style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold),
+                                  ),
+                                  TextSpan(text: ' ' + localization.translate('step_5_bullet_1_text')),
                                 ],
                               ),
                             ),
@@ -229,18 +302,23 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                         ],
                       ),
                       const SizedBox(height: 10),
+                      
+                      // Bullet point 2
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('🔹', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
+                          Text('🌱', style: TextStyle(fontSize: 18)),
+                          SizedBox(width: 8),
                           Expanded(
                             child: RichText(
                               text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                                style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black, height: 1.5),
                                 children: [
-                                  TextSpan(text: 'Control de plagas y enfermedades: ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: 'asegurando que los cultivos crezcan sanos y sin interferencias.'),
+                                  TextSpan(
+                                    text: localization.translate('step_5_bullet_2_title'),
+                                    style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold),
+                                  ),
+                                  TextSpan(text: ' ' + localization.translate('step_5_bullet_2_text')),
                                 ],
                               ),
                             ),
@@ -248,18 +326,23 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                         ],
                       ),
                       const SizedBox(height: 10),
+                      
+                      // Bullet point 3
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('🔹', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
+                          Text('🌱', style: TextStyle(fontSize: 18)),
+                          SizedBox(width: 8),
                           Expanded(
                             child: RichText(
                               text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                                style: GoogleFonts.montserrat(fontSize: 16, color: Colors.black, height: 1.5),
                                 children: [
-                                  TextSpan(text: 'Mantenimiento del suelo: ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: 'asegurando que retenga la humedad adecuada para el crecimiento óptimo de las plantas.'),
+                                  TextSpan(
+                                    text: localization.translate('step_5_bullet_3_title'),
+                                    style: TextStyle(color: Color(0xFF388E3C), fontWeight: FontWeight.bold),
+                                  ),
+                                  TextSpan(text: ' ' + localization.translate('step_5_bullet_3_text')),
                                 ],
                               ),
                             ),
@@ -267,19 +350,10 @@ class _CycleStep5PageState extends State<CycleStep5Page> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      // Paragraph 2
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌾', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Esta etapa es crucial para garantizar una cosecha abundante y sostenible, minimizando el impacto negativo en el ecosistema local.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
+                      
+                      Text(
+                        localization.translate('step_5_desc_s3'),
+                        style: GoogleFonts.montserrat(fontSize: 16, height: 1.5),
                       ),
                     ],
                   ),

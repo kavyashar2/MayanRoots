@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/localization_service.dart';
 import 'package:intl/intl.dart';
+import '../widgets/scroll_down_indicator.dart';
 
 class MoonPhasesPage extends StatefulWidget {
   const MoonPhasesPage({super.key});
@@ -14,6 +15,7 @@ class _MoonPhasesPageState extends State<MoonPhasesPage> {
   DateTime _selectedDate = DateTime.now();
   int? _selectedDay;
   final _mintGreen = const Color(0xFF98E5BE);
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -82,72 +84,6 @@ class _MoonPhasesPageState extends State<MoonPhasesPage> {
             ],
           );
         }),
-      ),
-    );
-  }
-
-  Widget _buildMoonInfo() {
-    final phase = _getMoonPhase(_selectedDate.day);
-    final phaseName = _getMoonPhaseName(phase);
-    final luminosity = _calculateLuminosity(phase);
-    
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Text(
-            '$phaseName ($luminosity%)',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Cielo ligeramente nublado, pero deberías tener\nun cielo mayormente despejado poco desde\nde las 6 h',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            phase,
-            style: const TextStyle(fontSize: 64),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  'Fecha: ${_formatDate(Provider.of<LocalizationService>(context, listen: false), _selectedDate)}',
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Fase: $phaseName',
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Luminosidad: $luminosity%',
-                  style: const TextStyle(fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Próxima Luna Llena: ${_formatDate(
-                    Provider.of<LocalizationService>(context, listen: false),
-                    _calculateNextFullMoon(_selectedDate),
-                  )}',
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -279,50 +215,92 @@ class _MoonPhasesPageState extends State<MoonPhasesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localization = Provider.of<LocalizationService>(context);
+    final phase = _getMoonPhase(_selectedDate.day);
+    final phaseName = _getMoonPhaseName(phase);
+    final luminosity = _calculateLuminosity(phase);
+    // Optionally, you can add a more descriptive text for each phase
+    final phaseDescription = 'Observa la fase lunar actual y su luminosidad.';
+
     return Scaffold(
-      backgroundColor: _mintGreen,
       appBar: AppBar(
-        backgroundColor: _mintGreen,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'U Xookil Uj',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
+        title: Row(
           children: [
-            const SizedBox(height: 16),
-            _buildMoonInfo(),
-            _buildCalendar(),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Cancelar',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Listo',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const Text('🌙', style: TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            const Text('Fases de la Luna', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
           ],
         ),
+        backgroundColor: _mintGreen,
+        elevation: 0,
+      ),
+      backgroundColor: _mintGreen,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 24),
+                Center(
+                  child: Text(
+                    phase,
+                    style: const TextStyle(fontSize: 80),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    phaseName,
+                    style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    phaseDescription,
+                    style: const TextStyle(fontSize: 16, color: Colors.black87),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Card(
+                    color: Color(0xFFF6E7C1),
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('Fecha: ${_formatDate(localization, _selectedDate)}', style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 8),
+                          Text('Fase: $phaseName', style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 8),
+                          Text('Luminosidad: $luminosity%', style: const TextStyle(fontSize: 18)),
+                          const SizedBox(height: 8),
+                          Text('Próxima Luna Llena: ${_formatDate(localization, _calculateNextFullMoon(_selectedDate))}', style: const TextStyle(fontSize: 18)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _buildCalendar(),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+          ScrollDownIndicator(controller: _scrollController),
+        ],
       ),
     );
   }
@@ -342,23 +320,23 @@ class _MoonPhasesPageState extends State<MoonPhasesPage> {
   String _getMoonPhaseName(String phaseEmoji) {
     switch (phaseEmoji) {
       case "🌑":
-        return "Luna Nueva";
+        return "LUNA NUEVA";
       case "🌒":
-        return "Luna Creciente";
+        return "LUNA CRECIENTE";
       case "🌓":
-        return "Cuarto Creciente";
+        return "CUARTO CRECIENTE";
       case "🌔":
-        return "Gibosa Creciente";
+        return "GIBOSA CRECIENTE";
       case "🌕":
-        return "Luna Llena";
+        return "LUNA LLENA";
       case "🌖":
-        return "Gibosa Menguante";
+        return "GIBOSA MENGUANTE";
       case "🌗":
-        return "Cuarto Menguante";
+        return "CUARTO MENGUANTE";
       case "🌘":
-        return "Luna Menguante";
+        return "LUNA MENGUANTE";
       default:
-        return "Desconocida";
+        return "DESCONOCIDA";
     }
   }
 
@@ -389,5 +367,20 @@ class _MoonPhasesPageState extends State<MoonPhasesPage> {
     int daysSinceNewMoon = date.difference(DateTime(2025, 1, 1)).inDays % 29;
     int daysToNextFullMoon = (14 - daysSinceNewMoon) % 29;
     return date.add(Duration(days: daysToNextFullMoon));
+  }
+
+  String _getPhaseTitle(String phase, LocalizationService localization) {
+    // Implementation of _getPhaseTitle method
+    return ''; // Placeholder return, actual implementation needed
+  }
+
+  String _getPhaseDescription(String phase, LocalizationService localization) {
+    // Implementation of _getPhaseDescription method
+    return ''; // Placeholder return, actual implementation needed
+  }
+
+  String _getMoonImage(String phase) {
+    // Implementation of _getMoonImage method
+    return ''; // Placeholder return, actual implementation needed
   }
 } 

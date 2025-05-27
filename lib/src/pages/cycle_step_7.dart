@@ -97,6 +97,7 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                 Navigator.pop(context);
               },
             ),
+            title: Text(localization.translate('step_7_title')),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
@@ -106,7 +107,7 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Text(
-                    'Step 7\n🛖 Limpieza del Terreno para un nuevo ciclo de cultivo',
+                    '${localization.translate('step_7_title')}',
                     style: GoogleFonts.montserrat(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -136,17 +137,17 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                         : Icon(isPlaying ? Icons.stop : Icons.play_arrow, size: 28, color: Colors.white),
                     label: Text(
                       isLoading
-                          ? 'Cargando...'
+                          ? localization.translate('loading')
                           : isPlaying
-                              ? 'Detener audio'
-                              : 'Reproducir audio',
+                              ? localization.translate('stop_audio')
+                              : localization.translate('play_audio'),
                       style: GoogleFonts.montserrat(fontSize: 18, color: Colors.white),
                     ),
                   ),
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Imagen de ejemplo',
+                  localization.translate('example_image'),
                   style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
@@ -159,7 +160,7 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Text(
-                        'No se pudo cargar la imagen',
+                        localization.translate('image_load_error'),
                         style: GoogleFonts.montserrat(color: Colors.red, fontSize: 18, fontWeight: FontWeight.bold),
                       );
                     },
@@ -176,7 +177,7 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.08),
                         blurRadius: 12,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -188,40 +189,69 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                           Text('🛖', style: TextStyle(fontSize: 28)),
                           SizedBox(width: 8),
                           Text(
-                            'Descripción de la etapa:',
+                            localization.translate('stage_description'),
                             style: GoogleFonts.montserrat(fontSize: 22, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      // Paragraph 1
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌱', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Después de la cosecha, el terreno debe limpiarse para prepararlo para el próximo ciclo de siembra.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        localization.translate('step_7_desc_s1'),
+                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                       ),
-                      const SizedBox(height: 16),
-                      // Bullet points
+                      const SizedBox(height: 10),
+                      Text(
+                        localization.translate('step_7_desc_s2'),
+                        style: GoogleFonts.montserrat(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87, height: 1.7),
+                      ),
+                      const SizedBox(height: 10),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('🔹', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
+                          Text('• ', style: GoogleFonts.montserrat(fontSize: 22)),
                           Expanded(
                             child: RichText(
                               text: TextSpan(
                                 style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                                 children: [
-                                  TextSpan(text: 'Remoción de residuos vegetales: ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: 'Se eliminan tallos secos, malas hierbas y restos de cultivos anteriores.'),
+                                  TextSpan(text: localization.translate('step_7_bullet_1_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  TextSpan(text: ' ' + localization.translate('step_7_bullet_1_text')),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('• ', style: GoogleFonts.montserrat(fontSize: 22)),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                                children: [
+                                  TextSpan(text: localization.translate('step_7_bullet_2_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  TextSpan(text: ' ' + localization.translate('step_7_bullet_2_text')),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('• ', style: GoogleFonts.montserrat(fontSize: 22)),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
+                                children: [
+                                  TextSpan(text: localization.translate('step_7_bullet_3_title'), style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  TextSpan(text: ' ' + localization.translate('step_7_bullet_3_text')),
                                 ],
                               ),
                             ),
@@ -229,57 +259,9 @@ class _CycleStep7PageState extends State<CycleStep7Page> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🔹', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                                children: [
-                                  TextSpan(text: 'Preparación del suelo: ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: 'Se realiza el arado o aireado del suelo para mejorar la retención de humedad y el acceso a nutrientes.'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🔹', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                                children: [
-                                  TextSpan(text: 'Control de plagas y enfermedades: ', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C))),
-                                  TextSpan(text: 'Se implementan prácticas para evitar que plagas y hongos afecten futuras plantaciones.'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Paragraph 2
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('🌾', style: TextStyle(fontSize: 22)),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              'Mantener el terreno limpio garantiza la fertilidad del suelo y reduce riesgos para la siguiente siembra.',
-                              style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        localization.translate('step_7_desc_s3'),
+                        style: GoogleFonts.montserrat(fontSize: 18, color: Colors.black87, height: 1.7),
                       ),
                     ],
                   ),
