@@ -1,16 +1,5 @@
-# mayan_roots_app
+# MayanRoots: Preserving Yucatán's Agricultural Heritage – A Mobile App for Agricultural Sustainability
 
-A bilingual mobile app for Yucatán’s farmers, integrating GIS with traditional Mayan agricultural knowledge. This tool empowers farmers to make informed decisions, preserves cultural practices, and improves productivity.
+A trilingual mobile app for Yucatán's farmers, integrating GIS with traditional Mayan agricultural knowledge. This tool empowers farmers to make informed decisions, preserves cultural practices, and improves productivity.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Developed using Flutter, Firebase, Node.js, Google Maps API, and Moon API. Climate Hazards Center (CHC UCSB) data integration.
